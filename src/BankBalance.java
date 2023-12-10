@@ -26,16 +26,17 @@ public class BankBalance extends JFrame implements ActionListener {
 	private JButton getBalanceButton;
 	private JButton depositButton;
 	private JButton withdrawalButton;
+	private BankAccount bankAccount;
+
+	private JLabel messageText;
 	
-	private double accountBalance;
-	
-	BankBalance() {
+	// NEW created BankAccount class and moved deposit and withdrawal fields to that class
+	public BankBalance(BankAccount bankAccount) {
 		GridBagConstraints layoutConst = null;
+		this.bankAccount = bankAccount;
 		
 		setTitle("Bank Balance");
-		
-		// set account balance amount to 0
-		accountBalance = 0;
+		bankAccount.accountBalance = 0;
 		
 		// create labels
 		accountBalanceLabel = new JLabel("Account balance:");
@@ -64,6 +65,9 @@ public class BankBalance extends JFrame implements ActionListener {
 		withdrawalButton = new JButton("Withdrawal Money");
 		withdrawalButton.addActionListener(this);
 		withdrawalButton.setActionCommand("Withdrawal");
+		
+		// NEW added label component to display a message whenever a user takes an action
+		messageText = new JLabel("");
 		
 		// create frame and add components using GridBagLayout
 		setLayout(new GridBagLayout());
@@ -147,10 +151,18 @@ public class BankBalance extends JFrame implements ActionListener {
 		layoutConst.gridy = 4;
 		layoutConst.gridwidth = 1;
 		add(withdrawalButton, layoutConst);
+		
+		layoutConst = new GridBagConstraints();
+		layoutConst.insets = new Insets(1, 10, 1, 10);
+		layoutConst.anchor = GridBagConstraints.LINE_START;
+		layoutConst.gridx = 0;
+		layoutConst.gridy = 5;
+		layoutConst.gridwidth = 4;
+		add(messageText, layoutConst);
 	
 		
 		// show account balance in field panel
-		accountBalanceField.setText(Double.toString(getBalance()));
+		accountBalanceField.setText(Double.toString(bankAccount.getBalance()));
 		
 		
 		// create functionality to show the current balance after the user closes the application
@@ -158,26 +170,16 @@ public class BankBalance extends JFrame implements ActionListener {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent event) {
-				JOptionPane.showMessageDialog(BankBalance.this, "Current Balance: $" + getBalance(), "Close Bank Application", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(BankBalance.this, "Current Balance: $" + bankAccount.getBalance(), "Close Bank Application", JOptionPane.INFORMATION_MESSAGE);
 			}
 		});
 	}
 	
-	
-	// method to get account balance
-	double getBalance() {
-		return accountBalance;
+	// NEW added method to show message on GUI when a deposit or withdrawal is made
+	public void updateText(String message) {
+		messageText.setText(message);
 	}
 	
-	// deposit method
-	void deposit(double amountToAdd){
-		accountBalance += amountToAdd;
-	}
-	
-	// withdrawal method
-	void withdrawal(double amountToSubtract) {
-		accountBalance -= amountToSubtract;
-	}
 	
 	// functionality for button interactions
 	// source: https://docs.oracle.com/javase%2F7%2Fdocs%2Fapi%2F%2F/java/awt/event/ActionEvent.html#getActionCommand()
@@ -191,29 +193,26 @@ public class BankBalance extends JFrame implements ActionListener {
 		{
 			userInput = depositAmountField.getText();	
 			amountEntered = Double.parseDouble(userInput);
-			deposit(amountEntered);
+			bankAccount.deposit(amountEntered);
 			depositAmountField.setText(Double.toString(0.00));
+			updateText("You have deposited $" + amountEntered);
 		}
 		// if user clicks withdrawal button, call withdrawal() method and then clear the entry in the field
 		else if ("Withdrawal".equals(event.getActionCommand()))
 		{
 			userInput = withdrawalAmountField.getText();
 			amountEntered = Double.parseDouble(userInput);
-			withdrawal(amountEntered);
+			bankAccount.withdrawal(amountEntered);
 			withdrawalAmountField.setText(Double.toString(0.00));
+			updateText("You have withdrawn $" + amountEntered);
 		}
 		// if user clicks Show My Balance button, return the balance amount and show in the text field
 		else if ("Get Balance".equals(event.getActionCommand()))
 		{
-			accountBalanceField.setText(Double.toString(getBalance()));
+			accountBalanceField.setText(Double.toString(bankAccount.getBalance()));
+			updateText("");
 		}
 	}
 	
-	public static void main(String[] args) {
-		BankBalance myFrame = new BankBalance();
-		myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		myFrame.pack();
-		myFrame.setVisible(true);
-	}
 
 }
